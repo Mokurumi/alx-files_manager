@@ -1,6 +1,6 @@
-import redisClient from '../utils/redis';
+// import redisClient from '../utils/redis';
 // import dbClient from '../utils/db';
-// const redisClient = require('../utils/redis');
+const redisClient = require('../utils/redis');
 const dbClient = require('../utils/db');
 
 class AppController {
@@ -17,4 +17,4 @@ class AppController {
   }
 }
 
-export default AppController;
+module.exports = AppController;
