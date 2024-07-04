@@ -13,11 +13,13 @@ class FilesController {
 
     const { id } = req.params;
     const file = await dbClient.nbFiles({ id });
-    if (!file)
+    if (!file) {
       return res.status(404).send({ error: 'Not found' });
+    }
 
-    if (file.isPublic === false && file.userID !== user.id)
+    if (file.isPublic === false && file.userID !== user.id) {
       return res.status(403).send({ error: 'Forbidden' });
+    }
 
     return res.status(200).send(file);
   }
@@ -61,16 +63,19 @@ class FilesController {
   static async putUnpublish(req, res) {
     const token = req.header('X-Token') || '';
     const user = await redisClient.get(`auth_${token}`);
-    if (!user)
+    if (!user) {
       return res.status(401).send({ error: 'Unauthorized' });
+    }
 
     const { id } = req.params;
     const file = await dbClient.nbFiles({ id });
-    if (!file)
+    if (!file) {
       return res.status(404).send({ error: 'Not found' });
+    }
 
-    if (file.userID !== user.id)
+    if (file.userID !== user.id) {
       return res.status(403).send({ error: 'Forbidden' });
+    }
 
     const result = await dbClient.updateFile(id, { isPublic: false });
     return res.status(200).send(result);
@@ -79,11 +84,13 @@ class FilesController {
   static async getFile(req, res) {
     const { id } = req.params;
     const file = await dbClient.nbFiles({ id });
-    if (!file)
+    if (!file) {
       return res.status(404).send({ error: 'Not found' });
+    }
 
-    if (file.type !== 'file' && file.type !== 'image')
+    if (file.type !== 'file' && file.type !== 'image') {
       return res.status(404).send({ error: 'Not found' });
+    }
 
     const token = req.header('X-Token') || '';
     const user = await redisClient.get(`auth_${token}`);
@@ -128,18 +135,22 @@ class FilesController {
     const { name, type, parentID, isPublic, data } = req.body;
 
     if (!name) return res.status(400).send({ error: 'Missing name' });
-    if (!type || !['folder', 'file', 'image'].includes(type))
+    if (!type || !['folder', 'file', 'image'].includes(type)) {
       return res.status(400).send({ error: 'Missing type' });
+    }
 
-    if (!data && ['file', 'image'].includes(type))
+    if (!data && ['file', 'image'].includes(type)) {
       return res.status(400).send({ error: 'Missing data' });
+    }
 
     const parent = await dbClient.nbFiles({ id: parentID });
-    if (!parent && parentID !== 0)
+    if (!parent && parentID !== 0) {
       return res.status(400).send({ error: 'Parent not found' });
+    }
 
-    if (parent && parent.type !== 'folder')
+    if (parent && parent.type !== 'folder') {
       return res.status(400).send({ error: 'Parent is not a folder' });
+    }
 
     if (type === 'folder') {
       const folder = {
