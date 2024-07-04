@@ -37,8 +37,9 @@ class FilesController {
     const files = await dbClient.nbFiles({ parentId });
     if (!files) return res.status(200).send([]);
 
-    if (parent && parent.isPublic === false && parent.userID !== user.id)
+    if (parent && parent.isPublic === false && parent.userID !== user.id) {
       return res.status(403).send({ error: 'Forbidden' });
+    }
 
     return res.status(200).send(files);
   }
@@ -50,11 +51,13 @@ class FilesController {
 
     const { id } = req.params;
     const file = await dbClient.nbFiles({ id });
-    if (!file)
+    if (!file) {
       return res.status(404).send({ error: 'Not found' });
+    }
 
-    if (file.userID !== user.id)
+    if (file.userID !== user.id) {
       return res.status(403).send({ error: 'Forbidden' });
+    }
 
     const result = await dbClient.updateFile(id, { isPublic: true });
     return res.status(200).send(result);
@@ -95,11 +98,13 @@ class FilesController {
     const token = req.header('X-Token') || '';
     const user = await redisClient.get(`auth_${token}`);
 
-    if (!file.isPublic && !user)
+    if (!file.isPublic && !user) {
       return res.status(404).send({ error: 'Not found' });
+    }
 
-    if (!file.isPublic && file.userID !== user.id)
+    if (!file.isPublic && file.userID !== user.id) {
       return res.status(404).send({ error: 'Not found' });
+    }
 
     const fileData = fs.readFileSync(file.localPath);
     const fileData64 = fileData.toString('base64');
