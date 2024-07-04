@@ -1,4 +1,4 @@
-const crypto = require('crypto');
+const sha1 = require('sha1');
 const { v4: uuidv4 } = require('uuid');
 const redisClient = require('../utils/redis');
 const dbClient = require('../utils/db');
@@ -11,11 +11,12 @@ class AuthController {
     const buff = Buffer.from(auth.replace('Basic ', ''), 'base64');
     const [email, password] = buff.toString('utf-8').split(':');
 
-    if (!email || !password)
+    if (!email || !password) {
       return res.status(401).send({ error: 'Unauthorized' });
+    }
 
-    const user = await dbClient.nbUsers(credentials.email);
-    const hashedPwd = crypto.createHash('sha1').update(password).digest('hex');
+    const user = await dbClient.nbUsers(email);
+    const hashedPwd = sha1(password);
 
     if (!user) return res.status(401).send({ error: 'Unauthorized' });
     if (user.password !== hashedPwd) return res.status(401).send({ error: 'Unauthorized' });
