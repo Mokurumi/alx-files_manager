@@ -1,26 +1,21 @@
 const sha1 = require('sha1');
+// const crypto = require('crypto');
+const Bull = require('bull');
 const dbClient = require('../utils/db');
+const redisClient = require('../utils/redis');
 
 class UsersController {
   static async postNew(req, res) {
     const { email, password } = req.body;
 
-    if (!email) {
-      return res.status(400).send({ error: 'Missing email' });
-    }
-    if (!password) {
-      return res.status(400).send({ error: 'Missing password' });
-    }
+    if (!email) return res.status(400).send({ error: 'Missing email' });
+    if (!password) return res.status(400).send({ error: 'Missing password' });
+    const user = await dbClient.nbUsers(email);
+    if (user) return res.status(400).send({ error: 'Already exist' });
 
-    const usersCollection = dbClient.database.collection('users');
-    const userExists = await usersCollection.findOne({ email });
-
-    if (userExists) {
-      return res.status(400).send({ error: 'Already exist' });
-    }
-
-    const hashedPassword = sha1(password);
-    const newUser = await dbClient.nbUsers({ email, hashedPassword });
+    // const hashedPwd = crypto.createHash('sha1').update(password).digest('hex');
+    const hashedPwd = sha1(password);
+    const newUser = await dbClient.nbUsers(email, hashedPwd);
 
     const fileQueue = new Bull('fileQueue');
     await fileQueue.add({ userId: newUser.id });
